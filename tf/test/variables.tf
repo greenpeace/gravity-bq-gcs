@@ -1,0 +1,2 @@
+variable "sentry_dsn" {
+}
