@@ -31,6 +31,10 @@ resource "google_cloudfunctions_function" "bq_gcs_extract" {
     BUCKET      = google_storage_bucket.destination.name
   }
 
+  failure_policy {
+    retry = true
+  }
+
 }
 
 resource "google_service_account" "function" {
