@@ -1,4 +1,3 @@
-.secret
 .terraform
 tf/test/build/
 tf.plan
