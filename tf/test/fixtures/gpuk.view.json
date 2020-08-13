@@ -1,0 +1,6 @@
+{
+    "project": "gpuk-analytics",
+    "view": "ins_reporting_ask_petition_signs",
+    "dataset": "ins_gpi_civis",
+    "location": "europe-west2"
+}

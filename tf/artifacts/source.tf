@@ -1,9 +1,9 @@
 
 resource "google_storage_bucket" "source_bucket" {
-  name          = "bq-gcs-source"
+  name          = "cosmos-bq-gcs-source"
   location      = "EU"
   project       = "global-data-resources"
-  force_destroy = "true"
+  force_destroy = "false"
 
   labels = {
     app       = "bq-gcs"

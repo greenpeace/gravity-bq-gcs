@@ -1,0 +1,6 @@
+{
+    "project": "global-data-resources",
+    "table": "shakespeare",
+    "dataset": "cosmos_gcs_finalise_bq_test",
+    "location": "EU"
+}

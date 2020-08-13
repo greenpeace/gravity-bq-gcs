@@ -17,7 +17,6 @@ variable "entity" {
 
 
 # FUNCTION
-
 variable "function_project" {
   default = "global-data-resources"
 }
@@ -66,4 +65,9 @@ variable "data_lifecycle" {
 variable "lifecycle_rule_delete_age" {
   default     = "7"
   description = "Files older than this in days are deleted"
+}
+
+variable "output_topic" {
+  default     = ""
+  description = "[Optional] PubSub topic to publish a message to when the file write is complete"
 }

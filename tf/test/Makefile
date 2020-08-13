@@ -3,10 +3,9 @@ $(error SENTRY_DSN not set)
 endif
 
 .EXPORT_ALL_VARIABLES:
-
 TF_VAR_sentry_dsn := $(SENTRY_DSN)
 
-all: clean init plan apply show
+all: clean init plan apply show test
 
 clean:
 	rm -fr tf.plan build
@@ -35,3 +34,6 @@ show:
 
 destroy: init
 	terraform destroy
+
+publish test:
+	gcloud pubsub topics publish $(shell terraform output input_topic) --message '$(shell jq -c . fixtures/test.table.json)'
