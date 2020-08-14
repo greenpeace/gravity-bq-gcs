@@ -1,6 +1,7 @@
 .EXPORT_ALL_VARIABLES:
 
-ENVIRONMENT ?= dev
+ENTITY ?= dev
+ENVIRONMENT ?= test
 
 install:
 	pip install -U -r requirements.txt
