@@ -95,11 +95,11 @@ release: $(TF_TEST_DIR)/build/bq-gcs.zip
 ifndef CI_COMMIT_REF_NAME
 	$(error Intended to be run in GitLab CI only)
 endif
-	gsutil cp test/build/bq-gcs.zip gs://$(RELEASE_SOURCE_BUCKET)/bq-gcs-$(CI_COMMIT_REF_NAME).zip
-	gsutil cp test/build/bq-gcs.zip gs://$(RELEASE_SOURCE_BUCKET)/bq-gcs-latest.zip
+	gsutil cp $(TF_TEST_DIR)/build/bq-gcs.zip gs://$(RELEASE_SOURCE_BUCKET)/bq-gcs-$(CI_COMMIT_REF_NAME).zip
+	gsutil cp $(TF_TEST_DIR)/build/bq-gcs.zip gs://$(RELEASE_SOURCE_BUCKET)/bq-gcs-latest.zip
 
 	if [[ "$(CI_COMMIT_REF_NAME)" = "develop" ]]; then { \
-		gsutil cp test/build/bq-gcs.zip gs://$(RELEASE_SOURCE_BUCKET)/bq-gcs-$(CI_COMMIT_REF_NAME)-$(CI_COMMIT_SHORT_SHA).zip; \
+		gsutil cp $(TF_TEST_DIR)/build/bq-gcs.zip gs://$(RELEASE_SOURCE_BUCKET)/bq-gcs-$(CI_COMMIT_REF_NAME)-$(CI_COMMIT_SHORT_SHA).zip; \
 		set_group_variable.sh $(GITLAB_DEPLOYMENTS_GROUP_ID) BQ_GCS_LOAD_DEVSHA $(CI_COMMIT_SHORT_SHA); \
 	} fi
 
