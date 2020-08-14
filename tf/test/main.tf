@@ -26,7 +26,7 @@ module "example" {
   source   = "../module/"
   app_name = "cosmos-bq-gcs"
 
-  destination_bucket_name = "cosmos-bq-gcs-data"
+  destination_bucket_name = "cosmos-bq-gcs-dev-test-data"
 
   data_source = "internal"
 
