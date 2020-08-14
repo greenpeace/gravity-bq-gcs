@@ -9,6 +9,8 @@ BUCKET ?= cosmos-bq-gcs-data
 # See: tf/artifacts/source.tf
 RELEASE_SOURCE_BUCKET ?= cosmos-bq-gcs-source
 
+all: install tf
+
 install:
 	$(MAKE) -C src install
 
