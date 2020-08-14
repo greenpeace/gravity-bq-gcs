@@ -1,3 +1,5 @@
+SHELL := /bin/bash
+
 TF_TEST_DIR := tf/test
 
 .EXPORT_ALL_VARIABLES:
