@@ -91,7 +91,7 @@ endif
 
 # =============================================================================
 
-release: test/build/bq-gcs.zip
+release: $(TF_TEST_DIR)/build/bq-gcs.zip
 ifndef CI_COMMIT_REF_NAME
 	$(error Intended to be run in GitLab CI only)
 endif
