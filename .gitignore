@@ -1,0 +1,4 @@
+.terraform
+tf/test/build/
+tf.plan
+__pycache__

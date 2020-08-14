@@ -1,0 +1,6 @@
+{
+    "project": "bigquery-public-data",
+    "table": "shakespeare",
+    "dataset": "samples",
+    "location": "US"
+}
