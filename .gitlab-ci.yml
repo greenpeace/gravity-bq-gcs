@@ -23,7 +23,7 @@ stages:
   tags:
     - Global Data
   image:
-    name: greenpeaceinternational/gitlab-data-civis-deployer:latest
+    name: greenpeaceinternational/gitlab-data-civis-deployer:5135233.1597664270
   before_script:
     - gcloud auth activate-service-account --key-file $SERVICE_ACCOUNT
     - export GOOGLE_APPLICATION_CREDENTIALS=$SERVICE_ACCOUNT
