@@ -19,7 +19,7 @@ import sentry_sdk
 # from google.api_core import retry
 
 APP_NAME = "bq-gcs"
-APP_VERSION = "1.0.0"
+APP_VERSION = "1.0.1"
 RELEASE_STRING = "{}@{}".format(APP_NAME, APP_VERSION)
 
 sentry_sdk.init(dsn=environ["SENTRY_DSN"], release=RELEASE_STRING)
