@@ -19,7 +19,7 @@ import sentry_sdk
 # from google.api_core import retry
 
 APP_NAME = "bq-gcs"
-APP_VERSION = "0.0.1"
+APP_VERSION = "1.0.0"
 RELEASE_STRING = "{}@{}".format(APP_NAME, APP_VERSION)
 
 sentry_sdk.init(dsn=environ["SENTRY_DSN"], release=RELEASE_STRING)
@@ -226,9 +226,9 @@ def main(event, context):
         for error in sys.exc_info():
             logging.error("%s", error)
         traceback.print_exc(file=sys.stderr)
-        print(event)
-        print(context)
-        sleep(5)
+        logging.error(event)
+        logging.error(context)
+        sleep(1)
         raise
 
 

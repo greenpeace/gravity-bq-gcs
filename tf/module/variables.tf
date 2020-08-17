@@ -45,10 +45,6 @@ variable "source_archive_object" {
 
 # BUCKET
 
-variable "destination_bucket_name" {
-  description = "GCS Bucket name to which we write the CSV export"
-}
-
 variable "destination_bucket_location" {
   default = "EU"
 }
@@ -59,13 +55,13 @@ variable "destination_bucket_project" {
 
 variable "data_lifecycle" {
   default     = "raw"
-  description = "State of data: raw, sensitive, pii, non_pii"
+  description = "State of data: quarantine, raw, sensitive, pii, non_pii"
 }
 
-variable "lifecycle_rule_delete_age" {
-  default     = "7"
-  description = "Files older than this in days are deleted"
-}
+# variable "lifecycle_rule_delete_age" {
+#   default     = "7"
+#   description = "Files older than this in days are deleted"
+# }
 
 variable "output_topic" {
   default     = ""
