@@ -45,10 +45,6 @@ variable "source_archive_object" {
 
 # BUCKET
 
-variable "destination_bucket_name" {
-  description = "GCS Bucket name to which we write the CSV export"
-}
-
 variable "destination_bucket_location" {
   default = "EU"
 }

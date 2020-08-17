@@ -1,6 +1,6 @@
 
 resource "google_storage_bucket" "destination" {
-  name     = var.destination_bucket_name
+  name     = "${var.app_name}-${var.entity}-${var.environment}-data-${var.data_lifecycle}"
   location = var.destination_bucket_location
   project  = var.destination_bucket_project
 
