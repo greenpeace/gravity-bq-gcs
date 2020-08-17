@@ -8,6 +8,8 @@ resource "google_cloudfunctions_function" "bq_gcs_extract" {
   available_memory_mb = 256
   timeout             = 300
 
+  service_account_email = google_service_account.function.email
+
   source_archive_bucket = var.source_archive_bucket
   source_archive_object = var.source_archive_object
 
