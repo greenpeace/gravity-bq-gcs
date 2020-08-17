@@ -58,10 +58,10 @@ variable "data_lifecycle" {
   description = "State of data: raw, sensitive, pii, non_pii"
 }
 
-variable "lifecycle_rule_delete_age" {
-  default     = "7"
-  description = "Files older than this in days are deleted"
-}
+# variable "lifecycle_rule_delete_age" {
+#   default     = "7"
+#   description = "Files older than this in days are deleted"
+# }
 
 variable "output_topic" {
   default     = ""

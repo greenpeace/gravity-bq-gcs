@@ -10,14 +10,15 @@ resource "google_storage_bucket" "destination" {
   # Enable force-deletion if the bucket is not empty
   force_destroy = true
 
-  lifecycle_rule {
-    condition {
-      age = var.lifecycle_rule_delete_age
-    }
-    action {
-      type = "Delete"
-    }
-  }
+  # lifecycle_rule {
+  #   condition {
+  #     age = var.lifecycle_rule_delete_age
+  #   }
+  #
+  #   action {
+  #     type = "Delete"
+  #   }
+  # }
 
   labels = {
     app         = var.app_name
