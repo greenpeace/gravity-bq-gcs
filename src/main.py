@@ -226,9 +226,9 @@ def main(event, context):
         for error in sys.exc_info():
             logging.error("%s", error)
         traceback.print_exc(file=sys.stderr)
-        print(event)
-        print(context)
-        sleep(5)
+        logging.error(event)
+        logging.error(context)
+        sleep(1)
         raise
 
 
