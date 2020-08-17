@@ -55,7 +55,7 @@ variable "destination_bucket_project" {
 
 variable "data_lifecycle" {
   default     = "raw"
-  description = "State of data: raw, sensitive, pii, non_pii"
+  description = "State of data: quarantine, raw, sensitive, pii, non_pii"
 }
 
 # variable "lifecycle_rule_delete_age" {
