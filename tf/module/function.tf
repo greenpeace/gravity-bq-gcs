@@ -5,8 +5,10 @@ resource "google_cloudfunctions_function" "bq_gcs_extract" {
   region              = var.function_location
   entry_point         = "main"
   runtime             = "python37"
-  available_memory_mb = 256
-  timeout             = 300
+  available_memory_mb = var.function_memory
+  timeout             = var.function_timeout
+
+  service_account_email = google_service_account.function.email
 
   source_archive_bucket = var.source_archive_bucket
   source_archive_object = var.source_archive_object

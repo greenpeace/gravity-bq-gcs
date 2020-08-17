@@ -26,6 +26,16 @@ variable "function_location" {
   description = "Location in which to execute cloud functions"
 }
 
+variable "function_memory" {
+  default     = 256
+  description = "Function memory allocation (MB)"
+}
+
+variable "function_timeout" {
+  default     = 540
+  description = "Function execution timeout (seconds)"
+}
+
 variable "sentry_dsn" {
   description = "sentry.greenpeace.org DSN identifier"
 }
