@@ -60,8 +60,15 @@ resource "google_pubsub_topic" "output" {
 
 resource "google_pubsub_topic_iam_member" "subscriber" {
   project = "global-data-resources"
-  topic   = google_pubsub_topic.input.name
+  topic   = google_pubsub_topic.input.id
   role    = "roles/pubsub.subscriber"
+  member  = "serviceAccount:${module.example.service_account_email}"
+}
+
+resource "google_pubsub_topic_iam_member" "publisher" {
+  project = "global-data-resources"
+  topic   = google_pubsub_topic.output.id
+  role    = "roles/pubsub.publisher"
   member  = "serviceAccount:${module.example.service_account_email}"
 }
 
