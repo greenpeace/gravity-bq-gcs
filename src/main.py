@@ -114,12 +114,14 @@ def bq_extract_table(bq):
         location=get_dataset_location(bq),
     )
     results = extract_job.result()  # Waits for job to complete.
-    pub(results._properties) # <google.cloud.bigquery.job.ExtractJob>
+    # pylint: disable=protected-access
+    pub(results._properties)  # <google.cloud.bigquery.job.ExtractJob>
+    # pylint: enable=protected-access
 
 
+# pylint: disable=unused-argument
 def get_callback(api_future, data, ref):
     """Wrap message data in the context of the callback function."""
-
     def callback(api_future):
         try:
             print(
@@ -137,6 +139,7 @@ def get_callback(api_future, data, ref):
             raise
 
     return callback
+# pylint: enable=unused-argument
 
 
 def pub(result):
