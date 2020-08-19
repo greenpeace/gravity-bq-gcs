@@ -29,7 +29,6 @@ resource "google_cloudfunctions_function" "bq_gcs_extract" {
     BUCKET       = google_storage_bucket.destination.name
     ENTITY       = var.entity
     ENVIRONMENT  = var.environment
-    SENTRY_DSN   = var.sentry_dsn
     OUTPUT_TOPIC = var.output_topic
   }
 }
@@ -49,4 +48,11 @@ resource "google_project_iam_member" "function" {
   project = var.function_project
   role    = "roles/bigquery.jobUser"
   member  = "serviceAccount:${google_service_account.function.email}"
+}
+
+resource "google_secret_manager_secret_iam_member" "sentry_dsn" {
+  project   = "global-data-resources"
+  secret_id = "sentry_dsn_cosmos_bq_gcs"
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.function.email}"
 }

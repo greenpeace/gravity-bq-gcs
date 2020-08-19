@@ -10,37 +10,31 @@ import traceback
 from os import environ
 from time import sleep
 
-# from google.cloud import storage
 from google.cloud import bigquery
 from google.cloud import pubsub_v1
+from google.cloud import secretmanager
 
 import sentry_sdk
+
+from cached_property_decorator import cached_property
 
 # from google.api_core import retry
 
 APP_NAME = "bq-gcs"
-APP_VERSION = "1.1.0"
+APP_VERSION = "1.2.0"
 RELEASE_STRING = "{}@{}".format(APP_NAME, APP_VERSION)
-
-sentry_sdk.init(dsn=environ["SENTRY_DSN"], release=RELEASE_STRING)
 
 BUCKET = environ["BUCKET"]
 ENTITY = environ["ENTITY"]
 
-if "prod" in environ["ENVIRONMENT"]:
-    logging.basicConfig(
-        format="%(asctime)s.%(msecs)03d %(filename)s:%(lineno)d - %(funcName)s: %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-        level=logging.INFO
-    )
-else:
-    logging.basicConfig(
-        format="%(asctime)s.%(msecs)03d %(filename)s:%(lineno)d - %(funcName)s: %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-        level=logging.DEBUG
-    )
+LOGGER = logging.getLogger()
 
-logging.info("%s: COLD", RELEASE_STRING)
+if "prod" in environ["ENVIRONMENT"]:
+    LOGGER.setLevel(logging.INFO)
+else:
+    LOGGER.setLevel(logging.DEBUG)
+
+LOGGER.info("%s: COLD", RELEASE_STRING)
 
 # Instantiate client
 BQ = bigquery.Client()
@@ -86,7 +80,7 @@ def get_destination_uri(bq):
 #     blob = bucket.blob(filename)
 #
 #     blob.upload_from_string(results)
-#     logging.info("Created")
+#     LOGGER.info("Created")
 
 
 # def bq_extract_view(bq):
@@ -100,8 +94,8 @@ def get_destination_uri(bq):
 #         location=get_dataset_location(bq)
 #     )
 #     results = query_job.result()  # Waits for job to complete.
-#     logging.debug(type(results))
-#     logging.info(results)
+#     LOGGER.debug(type(results))
+#     LOGGER.info(results)
 #     write_gcs_file(results, get_destination_uri(bq))
 
 
@@ -114,12 +108,14 @@ def bq_extract_table(bq):
         location=get_dataset_location(bq),
     )
     results = extract_job.result()  # Waits for job to complete.
-    pub(results._properties) # <google.cloud.bigquery.job.ExtractJob>
+    # pylint: disable=protected-access
+    pub(results._properties)  # <google.cloud.bigquery.job.ExtractJob>
+    # pylint: enable=protected-access
 
 
+# pylint: disable=unused-argument
 def get_callback(api_future, data, ref):
     """Wrap message data in the context of the callback function."""
-
     def callback(api_future):
         try:
             print(
@@ -137,6 +133,7 @@ def get_callback(api_future, data, ref):
             raise
 
     return callback
+# pylint: enable=unused-argument
 
 
 def pub(result):
@@ -144,8 +141,10 @@ def pub(result):
 
     # Exit early if output topic is not set
     if not environ["OUTPUT_TOPIC"]:
-        logging.info("Skip PubSub, OUTPUT_TOPIC is blank")
+        LOGGER.info("Skip PubSub, OUTPUT_TOPIC is blank")
         return 'ok'
+
+    LOGGER.debug("Publishing to topic %s", environ["OUTPUT_TOPIC"])
 
     info = "BigQuery extract complete in {}ms: {}.{}.{} => {}".format(
         result["statistics"]["totalSlotMs"],
@@ -155,7 +154,7 @@ def pub(result):
         ",".join(result["configuration"]["extract"]["destinationUris"])
     )
 
-    logging.info("%s", info)
+    LOGGER.info("%s", info)
 
     message = json.dumps({
         "entity": environ["ENTITY"],
@@ -209,6 +208,48 @@ def handler(event):
     )
 
 
+# pylint: disable=no-self-use,too-few-public-methods
+class Cache():
+    """Caches frequently used variables"""
+
+    def get_secret(
+            self,
+            name,
+            project="global-data-resources",
+            version="latest"):
+        """Performs a Google Secret Manager secret lookup, returns the decoded
+        value"""
+        LOGGER.debug("Fetching secret: %s/%s:%s ...", project, name, version)
+
+        # Create the Secret Manager client.
+        client = secretmanager.SecretManagerServiceClient()
+
+        # Build the resource name of the secret version.
+        name = client.secret_version_path(
+            project, name, version
+        )
+
+        # Access the secret version.
+        response = client.access_secret_version(name)
+
+        result = response.payload.data.decode('UTF-8')
+        return result
+
+    @cached_property(ttl=300)
+    def sentry_dsn(self):
+        """Fetches the Secret manager "sentry_dsn_cosmos_bq_gcs"
+        variable"""
+        value = self.get_secret(name="sentry_dsn_cosmos_bq_gcs")
+        return value
+# pylint: enable=no-self-use,too-few-public-methods
+
+
+# Create a place to store transient values
+CACHE = Cache()
+
+sentry_sdk.init(dsn=CACHE.sentry_dsn, release=RELEASE_STRING)
+
+
 def main(event, context):
     """Background Cloud Function to be triggered by Pub/Sub.
     Args:
@@ -220,14 +261,14 @@ def main(event, context):
          `timestamp` field contains the publish time.
     """
     try:
-        logging.debug("%s: HOT START", RELEASE_STRING)
+        LOGGER.debug("%s: HOT START", RELEASE_STRING)
         handler(event)
     except Exception:
         for error in sys.exc_info():
-            logging.error("%s", error)
+            LOGGER.error("%s", error)
         traceback.print_exc(file=sys.stderr)
-        logging.error(event)
-        logging.error(context)
+        LOGGER.error(event)
+        LOGGER.error(context)
         sleep(1)
         raise
 
