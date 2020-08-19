@@ -62,7 +62,7 @@ tf: lint tf-app
 # tf-fixtures:
 # 	$(MAKE) -C tf/deployments/test/fixtures
 
-tf-app $(TF_TEST_DIR)/build/bq-gcs.zip:
+tf-app $(TF_TEST_DIR)/build/bq-gcs.zip: dev-version-string
 	$(MAKE) -sC $(TF_TEST_DIR)
 
 tf-plan:
