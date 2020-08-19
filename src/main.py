@@ -21,7 +21,7 @@ from cached_property_decorator import cached_property
 # from google.api_core import retry
 
 APP_NAME = "bq-gcs"
-APP_VERSION = "1.1.0"
+APP_VERSION = "1.2.0"
 RELEASE_STRING = "{}@{}".format(APP_NAME, APP_VERSION)
 
 BUCKET = environ["BUCKET"]
