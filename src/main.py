@@ -27,20 +27,14 @@ RELEASE_STRING = "{}@{}".format(APP_NAME, APP_VERSION)
 BUCKET = environ["BUCKET"]
 ENTITY = environ["ENTITY"]
 
-if "prod" in environ["ENVIRONMENT"]:
-    logging.basicConfig(
-        format="%(asctime)s.%(msecs)03d %(filename)s:%(lineno)d - %(funcName)s: %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-        level=logging.INFO
-    )
-else:
-    logging.basicConfig(
-        format="%(asctime)s.%(msecs)03d %(filename)s:%(lineno)d - %(funcName)s: %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-        level=logging.DEBUG
-    )
+LOGGER = logging.getLogger()
 
-logging.info("%s: COLD", RELEASE_STRING)
+if "prod" in environ["ENVIRONMENT"]:
+    LOGGER.setLevel(logging.INFO)
+else:
+    LOGGER.setLevel(logging.DEBUG)
+
+LOGGER.info("%s: COLD", RELEASE_STRING)
 
 # Instantiate client
 BQ = bigquery.Client()
@@ -86,7 +80,7 @@ def get_destination_uri(bq):
 #     blob = bucket.blob(filename)
 #
 #     blob.upload_from_string(results)
-#     logging.info("Created")
+#     LOGGER.info("Created")
 
 
 # def bq_extract_view(bq):
@@ -100,8 +94,8 @@ def get_destination_uri(bq):
 #         location=get_dataset_location(bq)
 #     )
 #     results = query_job.result()  # Waits for job to complete.
-#     logging.debug(type(results))
-#     logging.info(results)
+#     LOGGER.debug(type(results))
+#     LOGGER.info(results)
 #     write_gcs_file(results, get_destination_uri(bq))
 
 
@@ -147,8 +141,10 @@ def pub(result):
 
     # Exit early if output topic is not set
     if not environ["OUTPUT_TOPIC"]:
-        logging.info("Skip PubSub, OUTPUT_TOPIC is blank")
+        LOGGER.info("Skip PubSub, OUTPUT_TOPIC is blank")
         return 'ok'
+
+    LOGGER.debug("Publishing to topic %s", environ["OUTPUT_TOPIC"])
 
     info = "BigQuery extract complete in {}ms: {}.{}.{} => {}".format(
         result["statistics"]["totalSlotMs"],
@@ -158,7 +154,7 @@ def pub(result):
         ",".join(result["configuration"]["extract"]["destinationUris"])
     )
 
-    logging.info("%s", info)
+    LOGGER.info("%s", info)
 
     message = json.dumps({
         "entity": environ["ENTITY"],
@@ -223,7 +219,7 @@ class Cache():
             version="latest"):
         """Performs a Google Secret Manager secret lookup, returns the decoded
         value"""
-        logging.debug("Fetching secret: %s/%s:%s ...", project, name, version)
+        LOGGER.debug("Fetching secret: %s/%s:%s ...", project, name, version)
 
         # Create the Secret Manager client.
         client = secretmanager.SecretManagerServiceClient()
@@ -265,14 +261,14 @@ def main(event, context):
          `timestamp` field contains the publish time.
     """
     try:
-        logging.debug("%s: HOT START", RELEASE_STRING)
+        LOGGER.debug("%s: HOT START", RELEASE_STRING)
         handler(event)
     except Exception:
         for error in sys.exc_info():
-            logging.error("%s", error)
+            LOGGER.error("%s", error)
         traceback.print_exc(file=sys.stderr)
-        logging.error(event)
-        logging.error(context)
+        LOGGER.error(event)
+        LOGGER.error(context)
         sleep(1)
         raise
 
