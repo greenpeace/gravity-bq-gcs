@@ -1,4 +1,5 @@
 google-cloud-bigquery
 google-cloud-pubsub
+google-cloud-secret-manager
 google-cloud-storage
 sentry_sdk

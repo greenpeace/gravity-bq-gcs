@@ -1,9 +1,3 @@
-ifndef SENTRY_DSN
-$(error SENTRY_DSN not set)
-endif
-
-.EXPORT_ALL_VARIABLES:
-TF_VAR_sentry_dsn := $(SENTRY_DSN)
 
 all: clean init plan apply show test
 

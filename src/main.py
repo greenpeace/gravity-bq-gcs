@@ -10,19 +10,19 @@ import traceback
 from os import environ
 from time import sleep
 
-# from google.cloud import storage
 from google.cloud import bigquery
 from google.cloud import pubsub_v1
+from google.cloud import secretmanager
 
 import sentry_sdk
+
+from cached_property_decorator import cached_property
 
 # from google.api_core import retry
 
 APP_NAME = "bq-gcs"
 APP_VERSION = "1.1.0"
 RELEASE_STRING = "{}@{}".format(APP_NAME, APP_VERSION)
-
-sentry_sdk.init(dsn=environ["SENTRY_DSN"], release=RELEASE_STRING)
 
 BUCKET = environ["BUCKET"]
 ENTITY = environ["ENTITY"]
@@ -207,6 +207,48 @@ def handler(event):
         "Invalid payload: no 'view' or 'table' field in payload",
         data
     )
+
+
+# pylint: disable=no-self-use,too-few-public-methods
+class Cache():
+    """Caches frequently used variables"""
+
+    def get_secret(
+            self,
+            name,
+            project="global-data-resources",
+            version="latest"):
+        """Performs a Google Secret Manager secret lookup, returns the decoded
+        value"""
+        logging.debug("Fetching secret: %s/%s:%s ...", project, name, version)
+
+        # Create the Secret Manager client.
+        client = secretmanager.SecretManagerServiceClient()
+
+        # Build the resource name of the secret version.
+        name = client.secret_version_path(
+            project, name, version
+        )
+
+        # Access the secret version.
+        response = client.access_secret_version(name)
+
+        result = response.payload.data.decode('UTF-8')
+        return result
+
+    @cached_property(ttl=300)
+    def sentry_dsn(self):
+        """Fetches the Secret manager "sentry_dsn_cosmos_bq_gcs"
+        variable"""
+        value = self.get_secret(name="sentry_dsn_cosmos_bq_gcs")
+        return value
+# pylint: enable=no-self-use,too-few-public-methods
+
+
+# Create a place to store transient values
+CACHE = Cache()
+
+sentry_sdk.init(dsn=CACHE.sentry_dsn, release=RELEASE_STRING)
 
 
 def main(event, context):

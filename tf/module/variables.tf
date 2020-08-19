@@ -36,10 +36,6 @@ variable "function_timeout" {
   description = "Function execution timeout (seconds)"
 }
 
-variable "sentry_dsn" {
-  description = "sentry.greenpeace.org DSN identifier"
-}
-
 variable "input_topic" {
   description = "PubSub topic which triggers this function"
 }

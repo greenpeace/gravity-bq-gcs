@@ -36,8 +36,6 @@ module "example" {
 
   input_topic  = google_pubsub_topic.input.id
   output_topic = google_pubsub_topic.output.id
-
-  sentry_dsn = var.sentry_dsn
 }
 
 resource "google_pubsub_topic" "input" {
