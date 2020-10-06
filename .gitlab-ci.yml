@@ -4,119 +4,22 @@ variables:
   PRODUCTION_PROJECT: global-data-resources
   TESTING_PROJECT: global-data-resources
   REGION: europe-west1
-  TF_IN_AUTOMATION: "true"
-  # SAST_DISABLE_DIND: "true"
 
 stages:
-  # - lint
-  # - test
-  # - analysis
   - deploy
   - release
-  # - trigger
-
-# include:
-#   - template: Dependency-Scanning.gitlab-ci.yml
-#   - template: SAST.gitlab-ci.yml
 
 .make_dependencies: &make_dependencies
   tags:
     - Global Data
   image:
-    name: greenpeaceinternational/gitlab-data-civis-deployer:5135233.1597664270
+    name: greenpeaceinternational/gitlab-data-civis-deployer:latest
   before_script:
     - gcloud auth activate-service-account --key-file $SERVICE_ACCOUNT
     - export GOOGLE_APPLICATION_CREDENTIALS=$SERVICE_ACCOUNT
     - gcloud config set project $PROJECT
     - gcloud config set functions/region $REGION
     - make install
-
-# lint:
-#   <<: *make_dependencies
-#   stage: lint
-#   only:
-#     - merge_requests
-#     - branches
-#   except:
-#     - master
-#   script:
-#     - make lint
-
-# test-jest:
-#   <<: *make_dependencies
-#   stage: test
-#   variables:
-#     PROJECT: $TESTING_PROJECT
-#   script:
-#     - make test
-#   only:
-#     - merge_requests
-#     - branches
-#   except:
-#     - master
-#   allow_failure: true
-
-# test-snyk:
-#   <<: *make_dependencies
-#   stage: test
-#   variables:
-#     PROJECT: $TESTING_PROJECT
-#   script:
-#     - make snyk
-#   only:
-#     - merge_requests
-#     - branches
-#   except:
-#     - master
-
-# test-coverage:
-#   <<: *make_dependencies
-#   stage: test
-#   variables:
-#     PROJECT: $TESTING_PROJECT
-#   artifacts:
-#     name: "$CI_JOB_NAME:coverage"
-#     expire_in: 1 weeks
-#     paths:
-#       - src/coverage/
-#   script:
-#     - make coverage
-#   only:
-#     - merge_requests
-#     - branches
-#   except:
-#     - master
-#   allow_failure: true
-
-# test-fossa:
-#   <<: *make_dependencies
-#   stage: test
-#   variables:
-#     PROJECT: $TESTING_PROJECT
-#   script:
-#     - make fossa
-#   only:
-#     - merge_requests
-#     - branches
-#   except:
-#     - master
-
-# check-sonarqube:
-#   stage: analysis
-#   variables:
-#     SONAR_HOST_URL: "https://sonarqube.p4.greenpeace.org"
-#   image:
-#     name: sonarsource/sonar-scanner-cli:latest
-#     entrypoint: [""]
-#   before_script:
-#     - git fetch --unshallow || true
-#   script:
-#     - sonar-scanner
-#   only:
-#     - merge_requests
-#     - branches
-#   except:
-#     - master
 
 deploy:
   <<: *make_dependencies
@@ -145,14 +48,3 @@ release:
     - develop
   script:
     - make release
-
-# trigger:
-  # stage: trigger
-  # variables:
-  #   DEPLOYMENT: example
-  # <<: *make_dependencies
-  # only:
-  #   - /^v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(-(0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(\.(0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*)?(\+[0-9a-zA-Z-]+(\.[0-9a-zA-Z-]+)*)?$/
-  #   - develop
-  # script:
-  #   - make trigger-${DEPLOYMENT}
