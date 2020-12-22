@@ -13,9 +13,29 @@ terraform {
   }
 }
 
-provider "google" {
+locals {
   project = "global-data-resources"
-  region  = "EU"
+}
+
+provider "google" {
+  alias = "initial"
+}
+
+data "google_client_config" "config-default" {
+  provider = google.initial
+}
+
+data "google_service_account_access_token" "default" {
+  provider               = google.initial
+  target_service_account = "terraform@${local.project}.iam.gserviceaccount.com"
+  scopes                 = ["cloud-platform"]
+  lifetime               = "300s"
+}
+
+provider "google" {
+  project      = local.project
+  region       = "EU"
+  access_token = data.google_service_account_access_token.default.access_token
 }
 
 module "artifacts" {
@@ -59,14 +79,14 @@ resource "google_pubsub_topic" "output" {
 }
 
 resource "google_pubsub_topic_iam_member" "subscriber" {
-  project = "global-data-resources"
+  project = local.project
   topic   = google_pubsub_topic.input.id
   role    = "roles/pubsub.subscriber"
   member  = "serviceAccount:${module.example.service_account_email}"
 }
 
 resource "google_pubsub_topic_iam_member" "publisher" {
-  project = "global-data-resources"
+  project = local.project
   topic   = google_pubsub_topic.output.id
   role    = "roles/pubsub.publisher"
   member  = "serviceAccount:${module.example.service_account_email}"

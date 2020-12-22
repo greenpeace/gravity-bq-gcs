@@ -124,6 +124,7 @@ release: $(TF_TEST_DIR)/build/bq-gcs.zip dev-version-string
 ifndef CI_COMMIT_REF_NAME
 	$(error Intended to be run in GitLab CI only)
 endif
+	gcloud config set auth/impersonate_service_account $(TF_EMAIL_PROD)
 	gsutil cp $(TF_TEST_DIR)/build/bq-gcs.zip gs://$(RELEASE_SOURCE_BUCKET)/bq-gcs-$(CI_COMMIT_REF_NAME).zip
 	gsutil cp $(TF_TEST_DIR)/build/bq-gcs.zip gs://$(RELEASE_SOURCE_BUCKET)/bq-gcs-latest.zip
 

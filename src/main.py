@@ -17,6 +17,7 @@ from google.cloud import secretmanager
 import sentry_sdk
 
 from cached_property_decorator import cached_property
+from credentials import Credentials
 
 # from google.api_core import retry
 
@@ -26,6 +27,7 @@ RELEASE_STRING = "{}@{}".format(APP_NAME, APP_VERSION)
 
 BUCKET = environ["BUCKET"]
 ENTITY = environ["ENTITY"]
+PROJECT = environ["PROJECT"]
 
 LOGGER = logging.getLogger()
 
@@ -36,8 +38,11 @@ else:
 
 LOGGER.info("%s: COLD", RELEASE_STRING)
 
+# Get an OAuth 2.0 access token
+credentials = Credentials().get()
+
 # Instantiate client
-BQ = bigquery.Client()
+BQ = bigquery.Client(credentials=credentials)
 
 
 def get_dataset_ref(bq):
@@ -168,7 +173,7 @@ def pub(result):
     ref = dict({"num_messages": 0})
 
     # Initialize a Publisher client.
-    client = pubsub_v1.PublisherClient()
+    client = pubsub_v1.PublisherClient(credentials=credentials)
 
     # When you publish a message, the client returns a future.
     api_future = client.publish(
@@ -212,17 +217,13 @@ def handler(event):
 class Cache():
     """Caches frequently used variables"""
 
-    def get_secret(
-            self,
-            name,
-            project="global-data-resources",
-            version="latest"):
+    def get_secret(self, name, project=PROJECT, version="latest"):
         """Performs a Google Secret Manager secret lookup, returns the decoded
         value"""
         LOGGER.debug("Fetching secret: %s/%s:%s ...", project, name, version)
 
         # Create the Secret Manager client.
-        client = secretmanager.SecretManagerServiceClient()
+        client = secretmanager.SecretManagerServiceClient(credentials=credentials)
 
         # Build the resource name of the secret version.
         name = client.secret_version_path(
