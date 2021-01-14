@@ -120,7 +120,13 @@ endif
 
 # =============================================================================
 
-release: $(TF_TEST_DIR)/build/bq-gcs.zip dev-version-string
+set:
+	gcloud config set auth/impersonate_service_account $(TF_EMAIL_PROD)
+
+unset:
+	gcloud config unset auth/impersonate_service_account
+
+release-unauth: $(TF_TEST_DIR)/build/bq-gcs.zip dev-version-string
 ifndef CI_COMMIT_REF_NAME
 	$(error Intended to be run in GitLab CI only)
 endif
@@ -135,3 +141,5 @@ endif
 	if [[ "$(TAGGED_RELEASE)" = "true" ]]; then { \
 		set_group_variable.sh $(GITLAB_DEPLOYMENTS_GROUP_ID) BQ_GCS_LOAD_VERSION $(CI_COMMIT_REF_NAME); \
 	} fi
+
+release: set release-unauth unset

@@ -17,6 +17,7 @@ from google.cloud import secretmanager
 import sentry_sdk
 
 from cached_property_decorator import cached_property
+from credentials import Credentials
 
 # from google.api_core import retry
 
@@ -26,6 +27,7 @@ RELEASE_STRING = "{}@{}".format(APP_NAME, APP_VERSION)
 
 BUCKET = environ["BUCKET"]
 ENTITY = environ["ENTITY"]
+PROJECT = environ["PROJECT"]
 
 LOGGER = logging.getLogger()
 
@@ -36,8 +38,11 @@ else:
 
 LOGGER.info("%s: COLD", RELEASE_STRING)
 
+# Get an OAuth 2.0 access token
+credentials = Credentials().get()
+
 # Instantiate client
-BQ = bigquery.Client()
+BQ = bigquery.Client(credentials=credentials)
 
 
 def get_dataset_ref(bq):
@@ -116,6 +121,7 @@ def bq_extract_table(bq):
 # pylint: disable=unused-argument
 def get_callback(api_future, data, ref):
     """Wrap message data in the context of the callback function."""
+
     def callback(api_future):
         try:
             print(
@@ -133,6 +139,8 @@ def get_callback(api_future, data, ref):
             raise
 
     return callback
+
+
 # pylint: enable=unused-argument
 
 
@@ -142,7 +150,7 @@ def pub(result):
     # Exit early if output topic is not set
     if not environ["OUTPUT_TOPIC"]:
         LOGGER.info("Skip PubSub, OUTPUT_TOPIC is blank")
-        return 'ok'
+        return "ok"
 
     LOGGER.debug("Publishing to topic %s", environ["OUTPUT_TOPIC"])
 
@@ -151,30 +159,29 @@ def pub(result):
         result["configuration"]["extract"]["sourceTable"]["projectId"],
         result["configuration"]["extract"]["sourceTable"]["datasetId"],
         result["configuration"]["extract"]["sourceTable"]["tableId"],
-        ",".join(result["configuration"]["extract"]["destinationUris"])
+        ",".join(result["configuration"]["extract"]["destinationUris"]),
     )
 
     LOGGER.info("%s", info)
 
-    message = json.dumps({
-        "entity": environ["ENTITY"],
-        "environment": environ["ENVIRONMENT"],
-        "event": "bq.extract.complete",
-        "info": info,
-        "result": result
-    })
+    message = json.dumps(
+        {
+            "entity": environ["ENTITY"],
+            "environment": environ["ENVIRONMENT"],
+            "event": "bq.extract.complete",
+            "info": info,
+            "result": result,
+        }
+    )
 
     # Keep track of the number of published messages.
     ref = dict({"num_messages": 0})
 
     # Initialize a Publisher client.
-    client = pubsub_v1.PublisherClient()
+    client = pubsub_v1.PublisherClient(credentials=credentials)
 
     # When you publish a message, the client returns a future.
-    api_future = client.publish(
-        environ["OUTPUT_TOPIC"],
-        data=message.encode('utf-8')
-    )
+    api_future = client.publish(environ["OUTPUT_TOPIC"], data=message.encode("utf-8"))
     api_future.add_done_callback(get_callback(api_future, message, ref))
 
     # Keep the main thread from exiting while the message future
@@ -194,7 +201,7 @@ def handler(event):
 
     if "table" in data["bq"]:
         bq_extract_table(data["bq"])
-        return 'ok'
+        return "ok"
 
     if "view" in data["bq"]:
         raise Exception("Extracts from BigQuery views not implemented.")
@@ -202,37 +209,28 @@ def handler(event):
         # pub(data["bq"])
         # return 'ok'
 
-    raise Exception(
-        "Invalid payload: no 'view' or 'table' field in payload",
-        data
-    )
+    raise Exception("Invalid payload: no 'view' or 'table' field in payload", data)
 
 
 # pylint: disable=no-self-use,too-few-public-methods
-class Cache():
+class Cache:
     """Caches frequently used variables"""
 
-    def get_secret(
-            self,
-            name,
-            project="global-data-resources",
-            version="latest"):
+    def get_secret(self, name, project=PROJECT, version="latest"):
         """Performs a Google Secret Manager secret lookup, returns the decoded
         value"""
         LOGGER.debug("Fetching secret: %s/%s:%s ...", project, name, version)
 
         # Create the Secret Manager client.
-        client = secretmanager.SecretManagerServiceClient()
+        client = secretmanager.SecretManagerServiceClient(credentials=credentials)
 
         # Build the resource name of the secret version.
-        name = client.secret_version_path(
-            project, name, version
-        )
+        name = client.secret_version_path(project, name, version)
 
         # Access the secret version.
         response = client.access_secret_version(name)
 
-        result = response.payload.data.decode('UTF-8')
+        result = response.payload.data.decode("UTF-8")
         return result
 
     @cached_property(ttl=300)
@@ -241,6 +239,8 @@ class Cache():
         variable"""
         value = self.get_secret(name="sentry_dsn_cosmos_bq_gcs")
         return value
+
+
 # pylint: enable=no-self-use,too-few-public-methods
 
 
