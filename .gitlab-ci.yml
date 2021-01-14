@@ -15,10 +15,12 @@ stages:
   image:
     name: greenpeaceinternational/gitlab-data-civis-deployer:latest
   before_script:
-    - gcloud auth activate-service-account --key-file $SERVICE_ACCOUNT
-    - export GOOGLE_APPLICATION_CREDENTIALS=$SERVICE_ACCOUNT
+    - gcloud auth activate-service-account --key-file $SERVICE_ACCOUNT_PROD
+    - export GOOGLE_APPLICATION_CREDENTIALS=$SERVICE_ACCOUNT_PROD
     - gcloud config set project $PROJECT
     - gcloud config set functions/region $REGION
+    - gcloud config set auth/impersonate_service_account $TF_EMAIL_PROD
+    - gcloud config set core/verbosity "error"
     - make install
 
 deploy:
