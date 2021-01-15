@@ -25,13 +25,24 @@ APP_NAME = "bq-gcs"
 APP_VERSION = "1.2.1"
 RELEASE_STRING = "{}@{}".format(APP_NAME, APP_VERSION)
 
+# Check for env variables
+for env_variable in [
+    "BUCKET",
+    "ENTITY",
+    "ENVIRONMENT",
+    "PROJECT",
+]:
+    if env_variable not in environ:
+        raise Exception(f"{env_variable} not found in environment")
+
 BUCKET = environ["BUCKET"]
 ENTITY = environ["ENTITY"]
+ENVIRONMENT = environ["ENVIRONMENT"]
 PROJECT = environ["PROJECT"]
 
 LOGGER = logging.getLogger()
 
-if "prod" in environ["ENVIRONMENT"]:
+if "prod" in ENVIRONMENT:
     LOGGER.setLevel(logging.INFO)
 else:
     LOGGER.setLevel(logging.DEBUG)

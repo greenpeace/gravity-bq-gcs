@@ -29,6 +29,7 @@ resource "google_cloudfunctions_function" "bq_gcs_extract" {
     BUCKET       = google_storage_bucket.destination.name
     ENTITY       = var.entity
     ENVIRONMENT  = var.environment
+    PROJECT      = var.function_project
     OUTPUT_TOPIC = var.output_topic
   }
 }
